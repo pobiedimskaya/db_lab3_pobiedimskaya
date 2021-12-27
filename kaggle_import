@@ -1,0 +1,46 @@
+import csv
+import psycopg2
+
+username = 'postgres'
+password = 'postgres'
+database = 'lab2'
+host = 'localhost'
+port = '5432'
+
+INPUT_CSV_FILE = 'house_prices.csv'
+
+query_create = '''
+CREATE TABLE HousesNew
+(
+    house_id     int     NOT NULL,	
+    year_built   int     NOT NULL,
+	neighborhood_id int  NOT NULL,
+	sale_id      int     NOT NULL
+);
+
+'''
+
+query_delete = '''
+DELETE FROM HousesNew
+'''
+
+query_insert = '''
+INSERT INTO HousesNew (house_id, year_built, neighborhood_id, sale_id) VALUES (%s, %s, %s, %s)
+'''
+
+con = psycopg2.connect(user=username, password=password, dbname=database, host=host, port=port)
+
+with con:
+
+    cur = con.cursor()
+    cur.execute(query_create)
+    cur.execute(query_delete)
+
+    with open(INPUT_CSV_FILE, 'r') as inf:
+        reader = csv.DictReader(inf)
+
+        for idx, row in enumerate(reader):
+            values = (row['Id'], row['YearBuilt'], row['Neighborhood'], row['Id'])
+            cur.execute(query_insert, values)
+
+    con.commit()
